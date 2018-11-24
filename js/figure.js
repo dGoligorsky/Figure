@@ -11,11 +11,20 @@
 // })
 
 const loadingTag = document.querySelector("header p.loading")
+const nextTag = document.querySelector("a.next")
+const previousTag = document.querySelector("a.previous")
+const stepsTag = document.querySelector("footer span")
+const sliderTag = document.querySelector("div.slider")
+const footerTag = document.querySelector("footer")
+
+let currentSlide = 0
+let totalSlides = 0
+
 
 const apiKey = config.apiKey
-// const apiKey = {{{{enter your Figma api key}}}}
+// const apiKey = "{{{{enter your Figma api key between the quotes}}}}""
 const apiHeaders = {
-    header: {
+    headers: {
         "X-Figma-Token": apiKey
     }
 }
@@ -39,12 +48,12 @@ const loadFile = function (key) {
 }
 
 const loadImages = function (obj) {
-    console.log(ids)
+    // console.log(ids)
 
     const key = obj.key
     const ids = obj.ids.join(",")
 
-    return fetch("https://api.figma.com/v1/images/" + key + "?ids=" + ids + "&scale=0.25", apiHeaders)
+    return fetch("https://api.figma.com/v1/images/" + key + "?ids=" + ids + "&scale=1", apiHeaders)
         .then(response => response.json())
         .then(data => {
             return obj.ids.map(id => {
@@ -54,11 +63,14 @@ const loadImages = function (obj) {
 }
 
 const addImagesToSite = function (urls) {
-    const sectionTag = document.querySelector("section")
-    sectionTag.innerHTML = ""
+
+    sliderTag.innerHTML = ""
+    totalSlides = urls.length
+
+    footerTag.classList.add("show")
 
     urls.forEach(url => {
-        sectionTag.innerHTML = sectionTag.innerHTML + `
+        sliderTag.innerHTML = sliderTag.innerHTML + `
             <div>
                 <img src="${url}">
             </div>
@@ -74,3 +86,35 @@ loadFile("CGOBm86xDuy1LrqlHANQcOEc")
     })
     .then(file => loadImages(file))
     .then(imageUrls => addImagesToSite(imageUrls))
+
+
+// lets add in events for next and previous
+
+const next = function () {
+    currentSlide = currentSlide + 1
+    if (currentSlide >= totalSlides) {
+        currentSlide = 0
+    }
+    moveSlider()
+}
+
+const previous = function () {
+    currentSlide = currentSlide -1
+    if (currentSlide < 0) {
+        currentSlide = totalSlides -1
+    }
+    moveSlider()
+}
+
+const moveSlider = function() {
+    sliderTag.style.transform = `translate(${currentSlide * -100}vw, 0)`
+    stepsTag.innerHTML = `${currentSlide + 1} / ${totalSlides}`
+}
+
+nextTag.addEventListener("click", function() {
+    next()
+})
+
+previousTag.addEventListener("click", function() {
+    previous()
+})
